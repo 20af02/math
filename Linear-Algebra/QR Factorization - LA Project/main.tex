@@ -1,0 +1,1019 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage{algpseudocode}
+\usepackage{geometry}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsfonts}
+\usepackage{amstext}
+\usepackage{amsthm}
+\usepackage{algorithm}
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    filecolor=magenta,      
+    urlcolor=cyan,
+    pdftitle={Overleaf Example},
+    pdfpagemode=FullScreen,
+    }
+ \geometry{
+ a4paper,
+ total={170mm,257mm},
+ left=20mm,
+ top=20mm,
+ }
+% References
+% https://www.overleaf.com/learn/latex/Bibliography_management_in_LaTeX
+% https://en.wikibooks.org/wiki/LaTeX/Bibliography_Management
+\usepackage{biblatex}
+\addbibresource{references.bib}
+\usepackage{minted}
+
+\title{MA-UY 3044B - QR Factorization}
+\author{Ammaar Firozi}
+\date{December 2021}
+
+\begin{document}
+
+\maketitle
+% Abstract
+\begin{abstract}
+This project covers the processes to construct  the \textbf{QR Factorization} of any \textbf{m x n} matrix \textbf{A} whose columns are linearly independent (i.e. $rank(A) = n$). In $A = QR$, the columns of \textbf{Q} will be an orthonormal basis for $Col(A)$, and \textbf{R} will be upper triangular. This project also mentions some breif applications of QR factorization, including the Linear Least Squares Problem and the QR method for finding eigenvalues. For inquiries, please email mmf8465@nyu.edu.
+\end{abstract}
+
+\tableofcontents
+
+\section{Theoretical Background}
+
+
+\subsubsection{Theorem (QR Factorization)} 
+Let $A \in \mathbb{R}^{m {\times} n}$ have rank \textbf{n} (i.e. linearly independent columns). Then \textbf{A} can be factored as \textbf{A = QR}, where the columns of $Q \in \mathbb{R}^{m {\times} n}$ form an orthonormal basis for \textbf{Col(A)}, and $Q \in \mathbb{R}^{n {\times} n}$ is upper-triangular with positive diagonal entries. \cite{trefethen_numerical_1997}
+
+\subsection{Proof}
+Key property of basis constructed by Gram-Schmidt $\newline$
+$$
+Span\{\vec{u}_{1},\vec{u}_{2}, ..., \vec{u}_{k}\} = Span\{\vec{x}_{1},\vec{x}_{2}, ..., \vec{x}_{k}\} \quad \forall  k \in [n]\newline
+$$
+Hence, 
+$$\exists \quad r_{i k} \quad {st} \quad \vec{x}_{k}= r_{1k}\vec{u}_{1}+...+ r_{kk}\vec{u}_{k}+\textbf{0}\vec{u}_{k+1}+...+\textbf{0}\vec{u}_{n}\newline
+$$
+
+WLOG, 
+$$
+r_{k k} \ge 0 (\text{ or change the sign of } \vec{u}_{k}).\newline
+$$
+$$
+\vec{r}_{k}=(r_{1 k},...,r_{k k},0,...,0) \in  \mathbb{R}^{n}.\newline
+$$
+Then, the above says $$
+Q \vec{r}_{k}=\vec{x}_{k}
+$$
+
+$$R = [\vec{r}_{1} ... \vec{r}_{n}] {, get} A = [\vec{x}_{1} ... \vec{x}_{n} = [Q \vec{r}_{1} ... Q \vec{r}_{n}] = QR.\newline
+$$
+
+Since $$
+Q^{T}Q = I_{n}, \quad A=QR \leadsto Q^{T}A=Q^{T}QR = R$$
+
+\subsection{Why is R upper Triangular?}
+Computing $\vec{x}_1$ only requires computing $r_{11} \cdot \vec{u}_{1}$, and all other multiplications will be 0. This means that writing $\vec{x}_{1}$ in terms of the basis, the first column of R will only have one non-zero element, the $2^{\text{nd}}$ column will have two non-zero elements, and the  $n^{\text{th}}$ column will have all non-zero elements. Based on this construction, R must be upper-triangular.
+
+$$
+R=\left
+[\begin{array}{cccc}
+r_{11} & r_{12} & ... & r_{1n} \\
+0 & r_{12} & \ddots & r_{2n} \\
+0 & 0 & ... & \vdots \\
+\vdots & 0 & ... & \vdots \\
+0 & 0 & ... & r_{nn} \\
+\end{array}\right] 
+$$
+
+\subsubsection{Why is R invertible?}
+We can assume that $R_{kk}$ was $\ge 0,$ as we know the basis constructed by Gram-Schmidt is constructed of linearly independent elements, as in R, a dimension is added for every $\vec{x}_k$, so each new column has an additional dimension every time a new $x_{k}$ is added, so the coefficient has to be nonzero.
+
+You can also think about this in another way. We know that 
+$$
+A=QR
+$$
+
+Where A represents a transformation in the following form:
+$$
+T(v)=Av \quad T:\mathbb{R}^{n} \rightarrow \mathbb{R}^{m},
+$$
+Q also has a similar transformation, 
+$$
+T(v)=Qv \quad T:\mathbb{R}^{n} \rightarrow \mathbb{R}^{m},
+$$
+and R has the following transformation,
+$$
+T(v)=Rv \quad T:\mathbb{R}^{n} \rightarrow \mathbb{R}^{n}
+$$
+
+From this setup, we can show R is invertable by contradiction.
+
+Suppose A is decomposed into QR, where R is a mapping from $\mathbb{R}^n$ to $\mathbb{R}^n$, and Q is a mapping from $\mathbb{R}^n$ to $\mathbb{R}^m$. We know that A is a mapping $\mathbb{R}^n$ to $\mathbb{R}^m$. This relationship can be visualized as follows:
+$$
+\begin{pmatrix}
+\mathbb{R}^n
+\end{pmatrix} \rightarrow^{R} \begin{pmatrix}
+\mathbb{R}^n
+\end{pmatrix} \rightarrow^{Q} \begin{pmatrix}
+\mathbb{R}^m
+\end{pmatrix} 
+$$
+
+$$
+\begin{pmatrix}
+\mathbb{R}^n
+\end{pmatrix} \rightarrow^{A} \begin{pmatrix}
+\mathbb{R}^m
+\end{pmatrix},
+$$
+
+Suppose R is not invertable. R is a square matrix, so by the invertable matrix theorem, R would have to have a nullspace that is not just 0. 
+$$
+Ker(R) \ne \{0\}
+$$
+
+The transformation mapping of things going to 0 would include \mathbf{Ker(R)}. This implies that \mathbb{Ker(Q)} would have a dimension greater than 0. However, A has linearly independent columns and therefore does not have any nullspace. Any things transformed in R to 0, will also be transformed to 0 in Q, so a non-trivial nullspace for R implies a non-trivial nullspace for Q, which cannot happen. Contradiction.
+
+Alternatively, you can derive this solution by noting that R is upper triangular, and has a non-zero determinant, which implies invertability. 
+
+
+\subsubsection{Why are all diagonal entries $>$ 0 (not just $\ge$ 0)?}
+
+If an element on the diagonal of R contained 0, the determinant would be 0, which, as stated above, contradicts Q being an orthogonal matrix.
+
+\subsection{Example:}
+
+Suppose we want to find the Reduced QR factorization of the given matrix \textbf{A}
+
+$$
+A=\left
+[\begin{array}{cc}
+2 & 1 \\
+2 & 1 \\
+1 & 5 \\
+\end{array}\right]
+$$
+
+In general, we can decompose a full rank matrix, A, into the matrices Q and R in the following expression.
+
+$$
+\left
+[\begin{array}{cccc}
+| & | & & | \\
+a_{1} & a_{2} & ... & a_{n} \\
+| & | & & | \\
+\end{array}\right]=\left
+[\begin{array}{cccc}
+| & | & &| \\
+u_{1} & u_{2} & ... & u_{n} \\
+| & | & &| \\
+\end{array}\right]\left
+[\begin{array}{cccc}
+r_{1 1} & r_{1 2} & ... & r_{1 n} \\
+ & r_{2 2} & ... & r_{2 n} \\
+ &  & & r_{n n} \\
+\end{array}\right]
+$$
+
+$$
+A=QR
+$$
+
+For the given matrix, We can write this expression as follows
+
+$$
+\left
+[\begin{array}{cc}
+| & | \\
+a_{1} & a_{2} \\
+| & | \\
+\end{array}\right]=\left
+[\begin{array}{cc}
+| & | \\
+u_{1} & u_{2} \\
+| & | \\
+\end{array}\right]\left [\begin{array}{cc}
+r_{11} & r_{1 2}  \\
+r_{2 1} &     r_{2 2} \\
+\end{array}\right], \text{where $r_{2 1}$ is 0.}
+$$
+
+\subsubsection{Computing Q}
+Finding Q is trivial, as you just compute the orthonormal basis of A. Using gram schmidt, we can see that Q is
+
+$$
+Q=\left
+[\begin{array}{cc}
+\frac{2}{3} & -\frac{1}{\sqrt{18}} \\
+\frac{2}{3} & -\frac{1}{\sqrt{18}} \\
+\frac{1}{3} & \frac{4}{\sqrt{18}} \\
+\end{array}\right]
+$$
+
+After finding Q, we need to calculate R. There are two methods to do so. One way is to use the relationships established by gram schmidt to find the column vectors of R, and another is more brute force. These two methods are explained in the following sections.
+
+\subsubsection{Computing R - Method 1}
+
+We can define the columns of A as the linear combination of two orhonormal vectors spanning the column space of A, hence
+
+$$
+\left
+[\begin{array}{cc}
+| & | \\
+u_{1} & u_{2} \\
+| & | \\
+\end{array}\right]\left [\begin{array}{cc}
+r_{11} & r_{1 2}  \\
+r_{2 1} &     r_{2 2} \\
+\end{array}\right]=\left
+[\begin{array}{cc}
+| & | \\
+a_{1} & a_{2} \\
+| & | \\
+\end{array}\right]
+$$
+
+The relationship between the column vectors of Q and A is already determined by gram schmidt, hence
+
+
+$$
+u_{1}= \frac{1}{\|a_{1}\|} a_{1}
+\Rightarrow 3u_{1} =a_{1}
+\Rightarrow
+r_{1 1}=3, r_{2 1} = 0
+$$
+and
+
+$$
+u_{2}=\frac{1}{\sqrt{18}}(a_{2}-3u_{1})
+\Rightarrow a_{2} = u_{2}\sqrt{18}+3u_{1}
+\Rightarrow r_{1 2}=3, r_{2 2} = \sqrt{18}
+$$
+
+hence,
+
+$$
+R=\left [\begin{array}{cc}
+3& 3  \\
+0 & \sqrt{18} \\
+\end{array}\right]
+$$
+
+
+
+\subsubsection{Computing R - Method 2}
+
+We can compute R by using the given expression
+$$
+A=QR, \text{multiply both sides by }Q^{T}
+$$
+
+$$
+Q^{T}A=Q^{T}QR, 
+$$
+$$
+\text{Q is an orthogonal matrix, hence }Q^{T}Q=I_{n}
+$$
+
+$$
+Q^{T}A=R
+$$
+
+The calculation is easy enough,
+$$
+Q^{T}=\left
+[\begin{array}{ccc}
+\frac{2}{3} & \frac{2}{3} & \frac{1}{3} \\
+-\frac{1}{\sqrt{18}} & -\frac{1}{\sqrt{18}} & \frac{4}{\sqrt{18}} \\
+\end{array}\right]
+$$
+
+$$
+Q^{T}A = \left
+[\begin{array}{ccc}
+\frac{2}{3} & \frac{2}{3} & \frac{1}{3} \\
+-\frac{1}{\sqrt{18}} & -\frac{1}{\sqrt{18}} & \frac{4}{\sqrt{18}} \\
+\end{array}\right] \left
+[\begin{array}{cc}
+2 & 1 \\
+2 & 1 \\
+1 & 5 \\
+\end{array}\right] = \left [\begin{array}{cc}
+3& 3  \\
+0 & \sqrt{18} \\
+\end{array}\right]
+$$
+
+
+In the end, the reduced QR factorization of A can be expressed as follows
+
+$$
+\left
+[\begin{array}{cc}
+2 & 1 \\
+2 & 1 \\
+1 & 5 \\
+\end{array}\right]=\left
+[\begin{array}{cc}
+\frac{2}{3} & -\frac{1}{\sqrt{18}} \\
+\frac{2}{3} & -\frac{1}{\sqrt{18}} \\
+\frac{1}{3} & \frac{4}{\sqrt{18}} \\
+\end{array}\right] \left [\begin{array}{cc}
+3& 3  \\
+0 & \sqrt{18} \\
+\end{array}\right]
+$$
+
+$$
+A=QR.
+$$
+
+
+
+\newpage
+\section{QR Factorization - Main Idea}
+Find orthonormal vectors that span the successive spaces spanned by the columns of \textbf{A}: $\newline$
+$$\vec{a}_{1} \subseteq <\vec{a}_{1},\vec{a}_2> \subseteq ... \subseteq ...\newline$$
+This means that for a full rank matrix A, $\newline$
+$$<\vec{m}_{1},\vec{m}_2, ... , \vec{m}_{i}> \subseteq <\vec{a}_{1},\vec{a}_2, ... , \vec{a}_{i}> {, for }\quad  i = 1, ... n$$\cite{greenbaum_numerical_2012}
+
+\subsubsection{Matrix Form}
+In matrx form, $$<\vec{m}_{1},\vec{m}_2, ... , \vec{m}_{i}> \subseteq <\vec{a}_{1},\vec{a}_2, ... , \vec{a}_{i}> { becomes } \newline$$
+
+$$
+\left
+[\begin{array}{c|c|c|c}
+a_{1} & a_{2} & ... & a_{n} 
+\end{array}\right] \left = [\begin{array}{c|c|c|c}
+q_{1} & q_{2} & ... & q_{n} 
+\end{array}]\right \left [\begin{array}{cccc}
+r_{11} & r_{12} & ... & r_{1 n} \\
+       & r_{22} &     & \vdots \\
+       &        &  \ddots & \vdots \\
+       &        &       & r_{nn} \\
+\end{array}\right]
+\text{ or }
+$$
+
+$$A = \hat{Q}\hat{R}.\newline$$
+This is the reduced QR factorization.
+Add orthogonal extension to \textbf{Q} and add rows to \textbf{R} to obtain the \textit{full} QR factorization
+
+\subsubsection{Full QR Factorization}
+Let $$A \in \mathbb{R}^{m {\times} n}.$$ The full QR factorization of A is the factorization 
+$$A = QR, \text{ where } $$
+$$Q \in \mathbb{R}^{m {\times} m} {\text{, and unitary. }} R \in \mathbb{R}^{m {\times} n} \text{, and upper-triangular}$$
+
+
+\subsubsection{Reduced QR Factorization}
+A more compact representation is the Reduced QR Factorization,$\newline$
+$$A=\hat{Q}\hat{R} \text{, where (assuming } m \ge n)$$
+$$Q \in \mathbb{R}^{m {\times} m}, \quad R \in \mathbb{R}^{n {\times} n} $$
+
+
+
+
+\subsection{Gram-Schmidt Orthogonalization}
+Find new $q_{i}$ orthogonal to $q_{1}, .., q_{i-1}$ by subtracting components along previous vectors, i.e. $\newline$
+$$v_{i} = a{i}-(q_{1}\cdot a_{i})q_{1}-(q_{2}\cdot a_{i})q_{2}- ... - (q_{i-1}\cdot a_{i})q_{i-1}$$
+Normalize each to get $$q_{i}=\frac{v_{i}}{\| \mathbf{v_{i}}\|}\newline$$
+
+We then obtain a reduced QR factorization, $A=\hat{Q}\hat{R}$, with $r_{i j}= q_{i}\cdot a_{j}$ for $i \ne j\newline$
+
+and
+ \[ |r_{j j}| = \| a_{j}-  \sum_{i=1}^{j-1} r_{i j} q_{i}\| \]
+
+
+\subsubsection{Classical Gram-Schmidt}
+Classical Gram-Schmidt is a very straight-forward application of Gram-Schmidt orthogonalization but is numerically unstable.
+
+\begin{minipage}{0.39\textwidth}
+\begin{algorithm}[H]
+\centering
+\caption{Classical Gram-Schmidt}\label{algorithm}
+\begin{algorithmic}[1]
+\For {$j\gets 1,n$}
+    \State {$v_{j} = a_{j}$}
+    \For {$i\gets 1,j-1$}
+        \State $r_{i j} = q_{i} \cdot a_{j}$
+        \State $v_{j} = v_{j}-r_{i j}\cdot q_{i}$
+    \EndFor
+    \State $r_{j j } = \| v_{j}=v_{j}\|_{2}$
+    \State $q_{j}= v_{j}/r_{j j}$
+\EndFor
+\end{algorithmic}
+\end{algorithm}
+\end{minipage}\cite{cleve_b__moler_numerical_2008}
+
+
+\subsubsection{Existence and Uniqueness}
+Every A $\in \mathbb{C}^{m {\times} n}$ ($m \ge n$) has full QR factorization and reduced QR factorization.
+
+Proof: for full rank A, Gram-Schmidt prove exisistance of $A=\hat{Q}\hat{R}.$ Otherwise, when $v_j=0$ choose an arbitrary vector orthogonal to the previous $q_i$. For full QR, add orthogonal extnsion to \textbf{Q} and zero rows to \textbf{R}.
+
+$\newline$
+
+Each A $\in \mathbb{C}^{m {\times} n}$ ($m \ge n$) of full rank has a unique $A = \hat{Q}\hat{R}$ with $r_{j j } > 0$.
+
+Proof: Again, Gram-Schmidt, $r_{j j } > 0$ determines the sign.
+
+\section{Gram-Schmidt Orthogonalization}
+\subsection{Gram-Schmidt Projections}
+The orthogonal vectors produced by Gram-Schmidt can be written in terms of projectons.
+\begin{equation*}
+    q_{1} = \frac{P_{1} a_{1}}{\| P_{1} a_{1}\|}, \quad  q_{2} = \frac{P_{2} a_{2}}{\| P_{2} a_{2}\|}, ... \quad  q_{n} = \frac{P_{n} a_{n}}{\| P_{n} a_{n}\|}
+\end{equation*}
+where
+\begin{equation*}
+    P_{j} = I - \hat{Q}_{j-1} \hat{Q}_{j-1}^{T} \text{ with } \hat{Q}_{j-1} = \left
+[\begin{array}{c|c|c|c}
+q_{1} &q a_{2} & ... & q_{j-1} 
+\end{array}\right]
+\end{equation*}
+
+In other words, $P_{j}$ orthogonally projects onto the space orthogonal to $$<q_{1}, ... , q_{j-1}> \text{, and } rank(P_{j})=m-(j-1)$$
+
+\subsection{The Modified Gram-Schmidt Algorithm}
+THe projection $P_{j}$ can equivalently be written as 
+\begin{equation*}
+    P_{j}=P_{\perp q_{j-1}} ... P_{\perp q_{2}}P_{\perp q_{1}}
+\end{equation*}
+
+where
+\begin{equation*}
+    P_{\perp q} = I - q q^{T}
+\end{equation*}
+
+In other words, $P_{\perp q}$ projects orthogonally onto the space orthogonal to \textbf{q}, and $rank(P_{\perp q}) =m-1$
+
+The classical Gram-Schmidt algorithm computes an orthogonal vector via
+$v_{j}=P_{j} a_{j}$
+
+while the Modified Gram-Schmidt algorithm uses
+$$v_{j}=P_{\perp q_{j-1}} ... P_{\perp q_{2}}P_{\perp q_{1}}a_{j}$$
+
+\subsection{Classical vs. Modified Gram-Schmidt}
+A small modification of classical Gram-Schmidt gives modified Gram-Schmidt, which is numerically stable (less sensitive to floating-point rounding errors in large computations).
+
+\newpage
+\begin{minipage}{0.55\textwidth}
+\begin{algorithm}[H]
+\centering
+\caption{Classical/Modified Gram-Schmidt Algorithm}\label{algorithm}
+\begin{algorithmic}[1]
+\For {$j\gets 1,n$}
+    \State {$v_{j} = a_{j}$}
+    \For {$i\gets 1,j-1$}
+        \State $r_{i j} = q_{i}^{T} \cdot a_{j}$ (CGS)
+        \State $r_{i j} = q_{i}^{T} \cdot v_{j}$ (MGS)
+        \State $v_{j} = v_{j}-r_{i j}\cdot q_{i}$ 
+    \EndFor
+    \State $r_{j j } = \| v_{j}=v_{j}\|_{2}$
+    \State $q_{j}= v_{j}/r_{j j}$
+\EndFor
+\end{algorithmic}
+\end{algorithm}
+\end{minipage}\cite{cleve_b__moler_numerical_2008}
+
+\subsubsection{Implementation of Modified Gram-Schmidt}
+In modified Gram-Schmidt, $P_{\perp q_{i}}$ can be applied to all $v_j$ as soon as $q_i$ is known.
+This makes the inner loop iterations independent (like in classical Gram-Schmidt)
+$\newline$
+
+
+
+\begin{minipage}{0.36\textwidth}
+\begin{algorithm}[H]
+\centering
+\caption{Classical Gram-Schmidt}\label{algorithm}
+\begin{algorithmic}[1]
+\For {$j\gets 1,n$}
+    \State {$v_{j} = a_{j}$}
+    \For {$i\gets 1,j-1$}
+        \State $r_{i j} = q_{i}^{T} \cdot a_{j}$
+        \State $v_{j} = v_{j}-r_{i j}\cdot q_{i}$ 
+    \EndFor
+    \State $r_{j j } = \| v_{j}=v_{j}\|_{2}$
+    \State $q_{j}= v_{j}/r_{j j}$
+\EndFor
+\end{algorithmic}
+\end{algorithm}
+\end{minipage}
+\hfill
+\begin{minipage}{0.36\textwidth}
+\begin{algorithm}[H]
+\centering
+\caption{Modified Gram-Schmidt}\label{algorithm}
+\begin{algorithmic}[1]
+\For {$i\gets 1,n$}
+    \State {$v_{i} = a_{i}$}
+\EndFor
+\For {$i\gets 1,n$}
+        \State $r_{i i} = \| v_{i}\|$
+        \State $q_{i} = v_{i}/r_{i i}$
+        \For{$j\gets i+1,n$}
+            \State $r_{i j} = q_{i}^{T} v_{j}$
+            \State $v_{j} = v_{j}-r_{i j} \cdot q_{i}$
+        \EndFor
+\EndFor
+\end{algorithmic}
+\end{algorithm}
+\end{minipage}
+\cite{cleve_b__moler_numerical_2008}
+
+\section{Householder Reflectors}
+Note: Much work in this section was derived thanks to the book, Matrix Computations [1].
+\subsection{Gram-Schmidt as Triangular Orthogonalization}
+Gram-Schmidt multiplies with triangular matrices to make columns orthogonal, for example at the first step:
+$$
+[\begin{array}{c|c|c|c}
+v_{1} & v_{2} & ... & v_{n} 
+\end{array}]\right \left [\begin{array}{cccc}
+\frac{1}{r_{11}} & \frac{-r_{12}}{r_{11}} & \frac{-r_{13}}{r_{11}} & ... \\
+       & 1 &     &  \\
+       &        &  1 &  \\
+       &        &       & \ddots \\
+\end{array}\right] = [\begin{array}{c|c|c|c}
+q_{1} & v_{2}^{(2)} & ... & v_{n}^{(2)} 
+\end{array}]\right
+$$
+
+After all these steps, we get a product of triangular matrices:
+\begin{equation*}
+    AR_{1}R_{2}...R_{n}=\hat{Q}
+\end{equation*}
+where
+\begin{equation*}
+    AR_{1}R_{2}...R_{n}=\hat{R}^{-1}
+\end{equation*}
+
+This is call "Triangular orthogonalization"
+
+\subsection{Householder Triangularization}
+Gram-Schmidt method for computing QR factorization is often unstable when using floating point arithmetic. One alternative, which is somewhat similar to LU factorization just with orthogonal matrices, is to introduce zeroes into R one column at a time. This statement is the essence of Householder QR and is summarized below.
+
+The Householder method multiplies by unitary matrices to make columns triangular, for example, at the first step: 
+
+$$
+Q_{1}A = \left [\begin{array}{cccc}
+r_{11} & \mathbf{x} & ... & \mathbf{x} \\
+0       & \mathbf{x} &     &\mathbf{x}  \\
+0       & \mathbf{x} &     &\mathbf{x}  \\
+\vdots       &    \vdots    &\ddots &  \vdots\\
+\vdots       &     \mathbf{x}   &  ...     & \ddots \\
+\end{array}\right]
+$$
+
+After all these steps, we get a product of orthogonal matrices,
+
+$$
+    Q_{n}...Q_{2}Q_{1}A=R
+$$
+where
+$$
+    Q_{n}...Q_{2}Q_{1}=Q^{T} \quad \text{ i.e. } Q^{T}A=R
+$$
+This is called "Orthogonal triangularization"
+
+
+$Q_k$ introduces zeroes below the diagonal in column \textbf{k}, preserving all the zeros previously introduced
+
+$$
+\left [\begin{array}{ccc}
+x & x & x \\
+x & x & x \\
+x & x & x \\
+x & x & x \\
+x & x & x \\
+\end{array}\right] \rightarrow^{Q_{1}} \left [\begin{array}{ccc}
+\mathbf{x} & \mathbf{x} & \mathbf{x} \\
+\mathbf{x} & \mathbf{x} & \mathbf{x} \\
+0 & \mathbf{x} & \mathbf{x} \\
+0 & \mathbf{x} & \mathbf{x} \\
+0 & \mathbf{x} & \mathbf{x} \\
+\end{array}\right]  \rightarrow^{Q_{2}} \left [\begin{array}{ccc}
+\mathbf{x} & \mathbf{x} & \mathbf{x} \\
+x & x & x \\
+0 & \mathbf{x} & \mathbf{x} \\
+ & 0 & \mathbf{x} \\
+ & 0 & \mathbf{x} \\
+\end{array}\right] \rightarrow^{Q_{3}} \left [\begin{array}{ccc}
+x & x & x \\
+  & x & x \\
+ & & \mathbf{x} \\
+ &  & 0 \\
+ &  & 0 \\
+\end{array}\right]
+$$
+
+
+$$ A \rightarrow  Q_{1}A \rightarrow Q_{2}Q_{1}A \rightarrow Q_{3}Q_{2}Q_{1}A$$
+
+
+\subsection{Householder Reflectors}
+The basic operation of a Householder reflector is the following: Given a column vector \textbf{z}, find an orthogonal \textit{P}, so that $\mathbf{Pz}$ is zero.
+Let $Q_{k}$ be of the form
+$$
+Q_{k}= \left [\begin{array}{cc}
+I & 0 \\
+0 & F \\
+\end{array}\right]
+$$
+
+where \textbf{I} is $(k-1) {\times} (k-1)$, and \textbf{F} is  $(m-k+1) {\times} (m-k+1)\newline$
+
+We can create a Householder reflector, \textbf{F}, that introduces zeros:
+$$
+x= \left [\begin{array}{c}
+x \\
+x\\
+\vdots \\
+x\\
+\end{array}\right]
+\quad \quad F x = \left [\begin{array}{c}
+\| x\| \\
+0\\
+\vdots \\
+0\\
+\end{array}\right] = \| x \| e_{1}
+$$
+
+Idea: Reflect across hyper-plane \textbf{H} orthogonal to $v = \| x\|e_{1}-x$ by the unitary matrix. Geometry implies that \textbf{P} could be an operator of reflection.
+Suppose we want to reflect a vector x to Pz. We can think of an additional vector v that maps x to Px. The length of the projection of x onto the "mirror" between x and Px can be computed as follows: $\|x\| \cos \theta=\frac{-x^{T}v}{\|v\|}$, whose direction is $\frac{v}{\|v\|}$. Multiplying by two yields $-2v \frac{x^{T}v}{v^{T}v}$ These properties are summarized below:
+$\newline$
+
+
+Suppose we have a vector w going from x to the "mirror," (hyper-plane) and from the "mirror" to Px.
+
+For any vector x onto a "mirror": $\|w\| \cos \theta = \frac{-x^{T}v}{\sqrt{v^{T}v}} \cdot \frac{v}{\sqrt{v^{T}v}} = -v \frac{x^{T}v}{v^{T}v} = w$
+
+For any x to its reflection: $-2v \frac{x^{T}v}{v^{T}v}$, (i.e. $x+2w=Px$).
+
+$$Px=x-- 2 \frac{v(x^{T}v) }{v^{T}v} \Rightarrow P= I - 2 \frac{vv^{T} }{v^{T}v},$$ for all x, this is the Orthogonal matrix / Householder reflector.
+
+
+$\newline\newline$
+
+$$
+    F = I - 2 \frac{vv^{T} }{v^{T}v}
+$$
+
+compare with the projection
+$$
+P_{\perp v} = I -\frac{vv^{T}}{v^{T}v}
+$$
+
+$$
+Q_{n}Q_{n-1}...Q_{2}Q_{1}A=R, \quad Q^{T}=Q_{n}Q_{n-1}...Q_{2}Q_{1}
+$$
+
+
+
+\subsection{Choice of Reflector}
+We can choose to reflect any multiple \textbf{z} of $\| x\|e_{1}$ with $|z|=1$.
+
+However, there are better numerical properties with large $\| v\|$, for example
+
+$$
+    v = sign(x_{1})\| x\|e_{1}+x
+$$
+
+
+\subsection{The Householder Algorithm}
+The Householder Algorithm essentially computes the factor R of a QR factorization from a matrix $A \in \mathbb{R}^{m {\times} n}$ ($m \ge n$). We use the 2-norm as $\|Pz\|_{2}=\|z\|_2$ by orthogonality.
+In the end, the result is left in place of A, and the reflectors $v_{k}$ are stored for later use.
+
+$\newline$
+\begin{minipage}{0.46\textwidth}
+\begin{algorithm}[H]
+\centering
+\caption{Householder QR Factorization}\label{algorithm}
+\begin{algorithmic}[1]
+\For {$k\gets 1,n$}
+    \State $x = A_{k:m,k}$
+    \State $v_{k}=sign(x_{1})\| x\|_{2}e_{1}+x$
+    \State $v_{k}=v_{k}/\| v_{k}\|_{2}$
+    \State $A_{k:m,k:n} = A_{k:m,k:n}-2 v_{k} (v_{k}^{T} A_{k:m,k:n})$
+\EndFor
+\end{algorithmic}
+\end{algorithm}
+\end{minipage}
+
+\subsection{Applying or Forming Q}
+This process is relatively easy.
+Compute $Q^{T}b = Q_{n}...Q_{2}Q_{1}b$ and $Q x = Q_{1}Q_{2}...Q_{n}x$ implicitly.
+
+To create \textbf{Q} explicitly, apply to $x = I$
+
+
+\begin{minipage}{0.39\textwidth}
+\begin{algorithm}[H]
+\centering
+\caption{Implicit Calculation of $Q^{T}b$}\label{algorithm}
+\begin{algorithmic}[1]
+\For {$k\gets 1,n$}
+    \State $b_{k:m} = b_{k:m}-2 v_{k}(v_{k}^{T}b_{k:m})$
+\EndFor
+\end{algorithmic}
+\end{algorithm}
+\end{minipage}
+\hfill
+\begin{minipage}{0.39\textwidth}
+\begin{algorithm}[H]
+\centering
+\caption{Implicit Calculation of $Q x$}\label{algorithm}
+\begin{algorithmic}
+\For {$k\gets n,1$}
+    \State $x_{k:m} = x_{k:m}-2v_{k}(v_{k}^{T}x_{k:m})$
+\EndFor
+\end{algorithmic}
+\end{algorithm}
+\end{minipage}
+
+\subsection{Givens Rotations}
+An alternative to Householder reflectors are Givens Rotations. These are elementary rotations in two dimensions of a matrix problem. Givens rotations can be used in sequence to from the QR decomposition of a matrix. This method is often less efficient than other methods, but provides additional flexibility in some cases, which are listed later on. 
+
+
+The givens rotation matrix for a 2 by 2 matrix can be defined as follows:
+
+$$
+R= \left [\begin{array}{cc}
+\cos(\theta) & -\sin(\theta) \\
+\sin(\theta) & \cos(\theta) \\
+\end{array}\right]
+$$ 
+rotates $x \in \mathbb{R}^{2} \text{ by } \theta$
+
+More generally a givens rotation matrix can be defined as follows,
+
+$$
+G(i,j,\theta) = \left [\begin{array}{ccccccc}
+1 & ... & 0 & ... & 0 &... & 0 \\ 
+\vdots & \ddots & \vdots & \ddots & \vdots & \ddots & \vdots \\ 
+0 & ... & \cos \theta & ... & \sin \theta &... & 0 \\ 
+\vdots & \ddots & \vdots & \ddots & \vdots & \ddots & \vdots \\ 
+0 & ... & -\sin \theta & ... & \cos \theta &... & 0 \\ 
+\vdots & \ddots & \vdots & \ddots & \vdots & \ddots & \vdots \\ 
+0 & ... & 0 & ... & 0 &... & 1 \\ 
+\end{array}\right], 
+$$
+
+$$
+\text{ which applies a rotation within the space spanned by the } \text{i}^\text{th} 
+\text{ and } \text{j}^\text{th} \text{ coordinates.}
+$$
+
+
+
+To set an element to zero, choose $\cos(\theta)$ and $\sin(\theta)$ so that
+
+
+$$
+R= \left [\begin{array}{cc}
+\cos(\theta) & -\sin(\theta) \\
+\sin(\theta) & \cos(\theta) \\
+\end{array}\right] \left [\begin{array}{c}
+x_{i} \\
+x_{k} \\
+\end{array}\right] =  \left [\begin{array}{c}
+\sqrt{x_{i}^{2}+x_{j}^{2}} \\
+0 \\
+\end{array}\right]
+$$ or
+
+$$
+    \cos(\theta) = \frac{x_{i}}{\sqrt{x_{i}^{2}+x_{j}^{2}}}, \quad \quad \sin(\theta) = \frac{-x_{j}}{\sqrt{x_{i}^{2}+x_{j}^{2}}}
+$$
+
+However, this method is susceptible to overflow/underflow if $\sqrt{x_{i}^{2}+x_{j}^{2}}$ is very small. A better computation is as follows:
+
+$if |X_{i}| > |x_{j}|, \text{ set } t = \tan \theta = \frac{x_{j}}{x_{i}} \Rightarrow$
+
+$$
+\cos \theta = \frac{1}{\sqrt{1+t^{2}}}, \quad \sin \theta = \cos (\theta) t
+$$
+
+$if |X_{j}| \ge |x_{i}|, \text{ set } \tau = \cot \theta = \frac{x_{i}}{x_{j}} \Rightarrow$
+
+$$
+\sin \theta = \frac{1}{\sqrt{1+\tau^{2}}}, \quad \cos \theta = \sin (\theta) \tau
+$$
+
+
+\subsubsection{Givens QR}
+
+To perform a Givens QR on an $m {\times} n$ matrix A where $m \ge n$, the following algorithm can be used,
+
+\begin{minipage}{0.49\textwidth}
+\begin{algorithm}[H]
+\centering
+\caption{Givens rotation algorithm}\label{algorithm}
+\begin{algorithmic}[1]
+\State $R \gets A$, $Q \gets I$
+\For {$k\gets 1,n$}
+    \For {$k \gets m,k+1$}
+        \State $G = G(j-1,j,\theta)$ (to eliminate $a_{j k}$)
+        \State $R = GR$
+        \State $Q = QG^{T}$
+    \EndFor
+\EndFor
+\end{algorithmic}
+\end{algorithm}
+\end{minipage}\cite{press_numerical_2007}
+
+The following visualization may be helpfull to visualize Givens QR,
+
+
+$$
+
+\left [\begin{array}{ccc}
+x & x & x \\
+x & x & x \\
+x & x & x \\
+x & x & x \\
+\end{array}\right] \rightarrow^{(3,4)} \left [\begin{array}{ccc}
+x & x & x \\
+x & x & x \\
+\mathbf{x} & \mathbf{x} & \mathbf{x} \\
+0 & \mathbf{x} & \mathbf{x} \\
+\end{array}\right]  \rightarrow^{(2,3)} \left [\begin{array}{ccc}
+x & x & x \\
+\mathbf{x} & \mathbf{x} & \mathbf{x} \\
+\mathbf{0} & \mathbf{x} & \mathbf{x} \\
+ & x & x \\
+\end{array}\right] \rightarrow^{(1,2)}\newline \left [\begin{array}{ccc}
+\mathbf{x} & \mathbf{x} & \mathbf{x} \\
+\mathbf{0} & \mathbf{x} & \mathbf{x} \\
+ & x& x \\
+ & x& x \\
+\end{array}\right] \rightarrow^{(3,4)} \left [\begin{array}{ccc}
+x & x & x \\
+ & x & x \\
+ & \mathbf{x} & \mathbf{x} \\
+ & \mathbf{0} & x \\
+\end{array}\right] \rightarrow^{(2,3)} 
+\left [\begin{array}{ccc}
+x & x & x \\
+ & \mathbf{x} & \mathbf{x} \\
+ & \mathbf{0} & \mathbf{x} \\
+ &  & x \\
+\end{array}\right] \rightarrow^{(2,3)} \mathbf{R}
+$$
+
+$\newline$
+Note: This computation is roughly 50 percent more computationally expensive than Householder QR. For a more detailed explanation of this method, I recommend the following \href{https://www.youtube.com/watch?v=B4IHL7j2SRk}{video}. 
+\subsection{Givens Rotations vs. Householder Reflections}
+
+This work shows how to rotate two elements of a column vector, such that one element would be zero, using Givens rotations. Because each rotation modifies at most two rows of a given matrix, these rotations can be done in parallel, which is why Givens rotations are preferred over Householder reflections. They are also easier to use when the QR factorization of a given matrix needs to be updated after adding a new row or deleting a column. Givens rotations are also more efficient compared to Householder rotations when a given matrix is sparse.
+
+
+\section{Applications}
+\subsection{Linear Least Squares Problem}
+Note: most of the following material are inspired by the following sources: \cite{strang_linear_1980}\cite{gene_h__golub__gene_howard_matrix_2013}
+
+In general,
+$$Ax = b \text{ with } m > n \text{ has no solution.}$$
+
+Instead, we can try to minimize the residual $$r=b-Ax.$$
+Using the Matirx 2-norm, we obtain the following linear least squares problem (LSP):
+
+$$
+\text{Given } A \in \mathbb{C}^{m {\times} n}, m \ge n, b \in \mathbb{C}^{m},
+\text{ find } x \in \mathbb{C}^{n} \text{ such that } \| b- Ax\|_{2} \text{ is minimized.}
+$$
+
+The minimizer, \textbf{x}, is the solution of the normal equations
+$$
+A^{T}Ax = A^{T}b,
+$$ or in terms of the pseudo-inverse $A^{+}$:
+$$
+x = A^{+}b, \quad \text{ where } A^{+} = (A^{T}A)^{-1}A^{T} \in \mathbb{C}^{n {\times} m} 
+$$
+
+\subsubsection{Geometric Interpretation}
+
+Find the point $Ax$ in $range(A)$ closest to \textbf{b}. This \textbf{x} will minimize the 2-norm of 
+$$
+r=b-Ax.
+$$
+
+$$
+Ax = Pb, \quad \text{where } P \text{ is an orthogonal projection onto } range(A) \text{, so the residual must be orthogonal to } range(A)
+$$
+
+\subsubsection{Solving LS - 1. Normal Equations}
+Assuming \textbf{A} is of full rank, $A^{T}A$ is a square, hermatian positive definite system that can be solved via Gaussian elimination / Cholesky factorization
+
+Idea:
+\begin{enumerate}
+
+    \item {Form the matrix $A^{T}A$ and the vector $A^{T}b$}
+    \item {Compute the Cholesky factorization $A^{T}A = R^{T}R$}
+    \item {Solve the lower-triangular system $R^{T}w=A^{T}b$ for $w$}
+    \item {Solve the upper triangular system $Rx = w$ for $x$}
+\end{enumerate}
+
+\newline
+Note: Allegorically, this is fast, but is still semi-unstable / sensitive to rounding errors.
+\subsubsection{Solving LS - 2. QR Factorization}
+Using $$A=\hat{Q}\hat{R}, b$$ can be projected onto $\range(A)$ via 
+$$
+P=\hat{Q}\hat{Q}^{T}
+$$
+
+Insert into $$Ax =b \text{ to get } \hat{Q}\hat{R}x=\hat{Q}\hat{Q}^{T}b, \text{ or } \hat{R}x = \hat{Q}^{T}b$$
+
+
+Idea:
+\begin{enumerate}
+
+    \item {Compute the reduced QR factorization $A=\hat{Q}\hat{R}$}
+    \item {Compute the vector $\hat{Q}^{T}b$}
+    \item {Solve the upper-triangular system $\hat{R}x=\hat{Q}^{T}b$ for $x$}
+\end{enumerate}
+Note: This is relatively fast and has good stability. This is actually used in MATLAB's "backslash" \.
+
+\subsubsection{Solving LS - 3. SVD}
+
+Using $$A=\hat{U}\hat{\Sigma}V^{T},$$ b can be projected onto $range(A)$ by $$P=\hat{U}\hat{U}^{T}.$$
+
+Insert into $$Ax=b$$ to get $$\hat{U}\hat{\Sigma}V^{T}x = \hat{U}\hat{U}^{T}b, \text{ or } \hat{\Sigma}V^{T}x = \hat{U}^{T}b$$
+
+Idea:
+\begin{enumerate}
+
+    \item Compute the reduced SVD $A=\hat{U}\hat{\Sigma}V^{T}$
+    \item Compute the vector $\hat{U}^{T}b$
+    \item Solve the diagonal system $\hat{\Sigma}\omega = \hat{U}^{Tb, $ for $\omega$
+    \item Set $x = V\omega$
+\end{enumerate}
+
+Note: This method is the most stable of the three and is typically used if a matrix is close to rank-deficient.
+
+
+\subsection{Finding Eigenvalues}
+QR Factorization can be used to find Eigenvalues of a given matrix.
+
+Suppose $A=Q_{0}R_{0}$ is a QR factorization of A;
+
+Create $A_{1}=R_{0}Q_{0}$
+
+This step can be repeated for $A_2$, i.e. let $A_{1}=Q_{1}R_{1}$ ne a QR factorization of $A_{1}$; 
+
+create $A_{2}=R_{1}Q_{1}$.
+
+Repeat this process. 
+
+Once $A_{m}$ is created, continue this process, i.e. create $A_{m+1}=R_{m}Q_{m}$
+
+This process stops when the entries below the main diagonal of $A_{m}$ are sufficiently small, or just end if the process fails to converge after a set amount of iterations.
+
+\subsubsection{Optimization: Shifting}
+The QR method to compute Eigenvalues can fail to converge, and is typically very slow on its own. One slight modification to the algorithm, which makes it converge more quickly is \textbf{shifting:} at each step, choose a scalar \textbf{c} such that we do not perform QR factorization on $A_{i}$, but rather $A_{i}-cI$, then add $cI$ back when defining $A_{i+1}$. If the scalars are chosen such that they are closer and closer to an eigenvalue of a matrix, this dramatically speeds up convergence of this algorithm
+
+\subsubsection{Optimization: Deflating}
+Another improvement can be made to compute Eigenvalues of a matrix more efficiently through a process called \textbf{deflating}, which removes the last row and column of  a matrix when the last row has zero entries on all columns except the last (i.e., reduce dimensionality of matrix for less expensive computations).
+
+\subsubsection{Modified QR Algorithm to compute Eigenvalues}
+
+Idea:
+\begin{enumerate}
+    \item Choose \textbf{c} to be the last diagonal entry in the matrix A. Let $A-cI =Q_{0}R_{0}$ be a QR factorization of $A-cI$; then create $A_1 = R_{0}Q_{0}+cI$.
+    \item Choose \textbf{c} to be the last diagonal entry in $A_{1}$. Let $A_{1}-cI =Q_{1}R_{1}$ be a QR factorization of $A_{1}-cI$; then create $A_2 = R_{1}Q_{1}+cI$.
+    \item Continue this process; Once $A_m$ is created, choose c to be the last diagonal entry in $A_m$, Let $A_{m}-cI =Q_{m}R_{m}$ be a QR factorization of $A_{m}-cI$; then create $A_{m+1} = R_{m}Q_{m}+cI$.
+    \item Repeat the above steps until the eigenvalues have been found, or the triangular limit matrix does not converge after a set amount of iterations.
+\end{enumerate}
+
+Remark 1: This method only applies to matrices that have \textbf{real} eigenvalues. If a matrix A has complex eigenvalues, this algorithm will still generate a converging sequence of matrices, but the limit matrix of this algorithm won't be upper triangular.
+
+Remark 2: If a matrix A has different magnitude eigenvalues, this method will converge to an upper triangular matrix.
+
+Remark 3: Most applications perform this process in two steps. First by finding a matrix similar to A and is an \textbf{upper Hessenberg matrix} that has all zeroes below its first sub-diagonal. Then this QR method is applied to the matrix. Given an upper Hessenberg matrix, this method also produces an upper Hessenberg matrix, so the sequence still converges to a block upper triangular matrix.
+
+
+\newpage
+\section{MATLAB Code}
+\subsection{QR - Gram Schmidt}
+\begin{lstlisting}[h]
+\inputminted{matlab}{QR.m}
+\caption{QR Factorization using Gram Schmidt}
+\label{listing:examplecode}
+\end{lstlisting}
+
+\newpage
+\subsection{QR - Householder}
+\begin{lstlisting}[h]
+\inputminted{matlab}{QR_householder.m}
+\caption{QR Factorization using Householder Reflectors}
+\label{listing:examplecode}
+\end{lstlisting}
+
+\section{References}
+
+\printbibliography
+\end{document}
